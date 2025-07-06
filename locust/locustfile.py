@@ -2,11 +2,10 @@ from locust import HttpUser, task, between
 import random
 from datetime import datetime, timedelta
 
-# --- Configuration ---
+# --- Config ---
 MAX_SENSOR_ID = 20000
 
 def skewed_sensor_id():
-    # Heavy skew toward low IDs (Zipf-like)
     return int(MAX_SENSOR_ID / (random.random() * 100 + 1))
 
 def bursty_timestamp():
@@ -16,7 +15,7 @@ def bursty_timestamp():
     return dt.isoformat()
 
 # -------------------
-# INSERT PING USER
+# INSERT PINGS
 # -------------------
 class InsertPingUser(HttpUser):
     wait_time = between(0.05, 0.3)
@@ -32,7 +31,7 @@ class InsertPingUser(HttpUser):
         self.client.post("/api/v1/pings", json=payload)
 
 # -------------------
-# FAILURE RATE QUERY
+# DASHBOARD FAILURE RATE
 # -------------------
 class FailureRateUser(HttpUser):
     wait_time = between(0.3, 1.5)
@@ -43,7 +42,7 @@ class FailureRateUser(HttpUser):
         self.client.get(f"/api/v1/sensors/{sensor_id}/failure_rate")
 
 # -------------------
-# RECENT FAILURES
+# INCIDENT DEBUG VIEW
 # -------------------
 class RecentFailuresUser(HttpUser):
     wait_time = between(0.2, 1.0)
@@ -54,7 +53,7 @@ class RecentFailuresUser(HttpUser):
         self.client.get(f"/api/v1/sensors/{sensor_id}/recent_failures")
 
 # -------------------
-# TIME SERIES STATS
+# TIME SERIES QUERIES
 # -------------------
 class TimeSeriesUser(HttpUser):
     wait_time = between(1.0, 2.5)
@@ -76,7 +75,23 @@ class SensorDetailUser(HttpUser):
         self.client.get(f"/api/v1/sensors/{sensor_id}/detail")
 
 # -------------------
-# RANDOM / ERROR TRAFFIC
+# BURSTY READ LOAD
+# -------------------
+class BurstyUser(HttpUser):
+    wait_time = between(0.5, 1.2)
+
+    @task("Bursty traffic to stats endpoint")
+    def bursty_traffic(self):
+        sensor_id = skewed_sensor_id()
+
+        if random.random() < 0.05:  # 5% chance of burst
+            for _ in range(5):
+                self.client.get(f"/api/v1/sensors/{sensor_id}/stats/hourly")
+        else:
+            self.client.get(f"/api/v1/sensors/{sensor_id}/failure_rate")
+
+# -------------------
+# ERROR/NOISE TRAFFIC
 # -------------------
 class RandomNoiseUser(HttpUser):
     wait_time = between(1.0, 3.0)
@@ -90,5 +105,3 @@ class RandomNoiseUser(HttpUser):
             "/api/v1/sensors//stats/hourly"
         ]
         self.client.get(random.choice(paths))
-
-
