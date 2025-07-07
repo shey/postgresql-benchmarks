@@ -1,0 +1,16 @@
+{
+  "rubyLsp.enabled": true,
+
+  // Stop Ruby LSP from running RuboCop
+  "rubyLsp.lint.enabled": false,
+
+  // Tell Ruby LSP to use Standard for linting + formatting
+  "rubyLsp.formatter": "standard",
+  "rubyLsp.linters": ["standard"],
+
+  "editor.formatOnSave": true,
+
+  "[ruby]": {
+    "editor.defaultFormatter": "Shopify.ruby-lsp"
+  }
+}
