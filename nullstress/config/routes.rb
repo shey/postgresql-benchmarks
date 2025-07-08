@@ -3,11 +3,11 @@ Rails.application.routes.draw do
 
   resources :sensors, only: [:index, :show] do
     member do
-      get :stats        # e.g. uptime %, avg latency
-      get :failures     # recent 5xx pings
-      get :top_failures
+      get :failure_rate           # /sensors/:id/failure_rate
+      get :recent_failures        # /sensors/:id/recent_failures
+      get :hourly_stats           # /sensors/:id/hourly_stats
     end
-
-    resources :pings, only: [:index, :create]
   end
+
+  resources :pings, only: [:create]  # POST /pings
 end

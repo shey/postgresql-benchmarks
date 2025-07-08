@@ -28,7 +28,7 @@ class InsertPingUser(HttpUser):
             "result": "success" if random.random() < 0.9 else "fail",
             "created_at": bursty_timestamp()
         }
-        self.client.post("/api/v1/pings", json=payload)
+        self.client.post("/pings", json=payload)
 
 # -------------------
 # DASHBOARD FAILURE RATE
@@ -39,7 +39,7 @@ class FailureRateUser(HttpUser):
     @task("Get failure rate")
     def get_failure_rate(self):
         sensor_id = skewed_sensor_id()
-        self.client.get(f"/api/v1/sensors/{sensor_id}/failure_rate")
+        self.client.get(f"/sensors/{sensor_id}/failure_rate")
 
 # -------------------
 # INCIDENT DEBUG VIEW
@@ -50,7 +50,7 @@ class RecentFailuresUser(HttpUser):
     @task("Get recent failures")
     def get_recent_failures(self):
         sensor_id = skewed_sensor_id()
-        self.client.get(f"/api/v1/sensors/{sensor_id}/recent_failures")
+        self.client.get(f"/sensors/{sensor_id}/recent_failures")
 
 # -------------------
 # TIME SERIES QUERIES
@@ -61,18 +61,7 @@ class TimeSeriesUser(HttpUser):
     @task("Get hourly stats")
     def hourly_stats(self):
         sensor_id = skewed_sensor_id()
-        self.client.get(f"/api/v1/sensors/{sensor_id}/stats/hourly")
-
-# -------------------
-# SENSOR DETAIL VIEW
-# -------------------
-class SensorDetailUser(HttpUser):
-    wait_time = between(0.8, 2.0)
-
-    @task("Get sensor detail")
-    def sensor_detail(self):
-        sensor_id = skewed_sensor_id()
-        self.client.get(f"/api/v1/sensors/{sensor_id}/detail")
+        self.client.get(f"/sensors/{sensor_id}/hourly_stats")
 
 # -------------------
 # BURSTY READ LOAD
@@ -86,9 +75,9 @@ class BurstyUser(HttpUser):
 
         if random.random() < 0.05:  # 5% chance of burst
             for _ in range(5):
-                self.client.get(f"/api/v1/sensors/{sensor_id}/stats/hourly")
+                self.client.get(f"/sensors/{sensor_id}/hourly_stats")
         else:
-            self.client.get(f"/api/v1/sensors/{sensor_id}/failure_rate")
+            self.client.get(f"/sensors/{sensor_id}/failure_rate")
 
 # -------------------
 # ERROR/NOISE TRAFFIC
@@ -99,9 +88,9 @@ class RandomNoiseUser(HttpUser):
     @task("Random 404s and noise")
     def send_noise(self):
         paths = [
-            "/api/v1/sensors/9999999/failure_rate",
-            "/api/v1/unknown",
-            "/api/v1/pings?sensor_id=abc",
-            "/api/v1/sensors//stats/hourly"
+            "/sensors/9999999/failure_rate",
+            "/unknown",
+            "/pings?sensor_id=abc",
+            "/sensors//stats/hourly"
         ]
         self.client.get(random.choice(paths))
