@@ -3,15 +3,11 @@ Rails.application.routes.draw do
 
   resources :sensors, only: [:index, :show] do
     member do
-      get :stats
-      get :failures
-      get :history
+      get :stats        # e.g. uptime %, avg latency
+      get :failures     # recent 5xx pings
+      get :top_failures
     end
 
     resources :pings, only: [:index, :create]
-  end
-
-  namespace :metrics do
-    get "failures/top", to: "failures#top"
   end
 end
