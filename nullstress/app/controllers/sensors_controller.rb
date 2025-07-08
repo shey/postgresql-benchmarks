@@ -1,6 +1,4 @@
 class SensorsController < ApplicationController
-  include Pagy::Backend
-
   def index
     sensors = Sensor.order(created_at: :desc)
     pagy, records = pagy(sensors, items: params.fetch(:per_page, 100).to_i)
@@ -43,7 +41,7 @@ class SensorsController < ApplicationController
     sensor = Sensor.find(params[:id])
 
     failed_pings = sensor.pings
-      .where("status_code >= 500")
+      .where(status_code: 500..)
       .order(created_at: :desc)
 
     pagy, records = pagy(failed_pings, items: params.fetch(:per_page, 100).to_i)
