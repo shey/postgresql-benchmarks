@@ -3,16 +3,10 @@ import random
 from datetime import datetime, timedelta
 
 # --- Config ---
-MAX_SENSOR_ID = 20000
+MAX_SENSOR_ID = 5000
 
 def skewed_sensor_id():
     return int(MAX_SENSOR_ID / (random.random() * 100 + 1))
-
-def bursty_timestamp():
-    skew = pow(random.random(), 3.5)  # heavier toward recent
-    days_offset = int(skew * 5 * 365)
-    dt = datetime.now() - timedelta(days=days_offset)
-    return dt.isoformat()
 
 # -------------------
 # INSERT PINGS
@@ -25,8 +19,7 @@ class InsertPingUser(HttpUser):
         payload = {
             "sensor_id": skewed_sensor_id(),
             "response_time": round(random.uniform(0, 100), 2),
-            "result": "success" if random.random() < 0.9 else "fail",
-            "created_at": bursty_timestamp()
+            "result": "success" if random.random() < 0.9 else "fail"
         }
         self.client.post("/pings", json=payload)
 
