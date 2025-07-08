@@ -12,6 +12,9 @@ group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "brakeman", require: false
   gem "standard", "~> 1.35"
+  gem "annotaterb", require: false
 end
 
 gem "jsonapi-serializer", "~> 2.2"
+
+gem "pagy", "~> 9.3"
