@@ -20,6 +20,14 @@
 #
 #  fk_rails_...  (sensor_id => sensors.id)
 #
-class Ping < ApplicationRecord
-  belongs_to :sensor
+class PingSerializer
+  include JSONAPI::Serializer
+
+  set_type :ping
+
+  attributes :sensor_id,
+    :status_code,
+    :response_time,
+    :created_at,
+    :updated_at
 end

@@ -9,5 +9,8 @@
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #
-class Sensor < ApplicationRecord
+class SensorSerializer
+  include JSONAPI::Serializer
+
+  attributes :id, :name, :sensor_type, :location, :created_at, :updated_at
 end
