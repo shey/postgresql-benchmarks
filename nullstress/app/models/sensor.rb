@@ -10,4 +10,5 @@
 #  updated_at  :datetime         not null
 #
 class Sensor < ApplicationRecord
+  has_many :pings
 end
