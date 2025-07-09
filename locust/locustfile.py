@@ -83,9 +83,15 @@ class BurstyUser(HttpUser):
         sensor_id = skewed_sensor_id()
         if random.random() < 0.05:
             for _ in range(5):
-                self.client.get(f"/sensors/{sensor_id}/hourly_stats", name="/sensors/:id/hourly_stats")
+                self.client.get(
+                    f"/sensors/{sensor_id}/hourly_stats",
+                    name="/sensors/:id/hourly_stats"
+                )
         else:
-            self.client.get(f"/sensors/{sensor_id}/failure_rate", name="/sensors/:id/failure_rate")
+            self.client.get(
+                f"/sensors/{sensor_id}/failure_rate",
+                name="/sensors/:id/failure_rate"
+            )
 
 # -------------------
 # SENSOR DETAIL VIEW
