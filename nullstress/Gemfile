@@ -18,3 +18,5 @@ end
 gem "jsonapi-serializer", "~> 2.2"
 
 gem "pagy", "~> 9.3"
+
+gem "enumerable-statistics", "~> 2.0"
