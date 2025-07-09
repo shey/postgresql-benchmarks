@@ -6,6 +6,8 @@ Rails.application.routes.draw do
       get :failure_rate           # /sensors/:id/failure_rate
       get :recent_failures        # /sensors/:id/recent_failures
       get :hourly_stats           # /sensors/:id/hourly_stats
+      get :recent_pings
+      get :latency_summary
     end
   end
 

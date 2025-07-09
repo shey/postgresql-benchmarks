@@ -9,7 +9,7 @@ class PingsController < ApplicationController
     if ping.save
       render json: PingSerializer.new(ping).serializable_hash, status: :created
     else
-      render json: { errors: ping.errors.full_messages }, status: :unprocessable_entity
+      render json: {errors: ping.errors.full_messages}, status: :unprocessable_entity
     end
   end
 
@@ -18,5 +18,4 @@ class PingsController < ApplicationController
   def ping_params
     params.require(:ping).permit(:sensor_id, :response_time, :status_code)
   end
-
 end

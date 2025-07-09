@@ -26,7 +26,7 @@ class SensorsController < ApplicationController
       data: {
         type: "failure_rate",
         id: sensor.id.to_s,
-        attributes: { rate: rate, total: total, failures: failures }
+        attributes: {rate: rate, total: total, failures: failures}
       }
     }
   end
@@ -66,7 +66,52 @@ class SensorsController < ApplicationController
       }
     end
 
-    render json: { data: data }
+    render json: {data: data}
+  end
+
+  def recent_pings
+    sensor = Sensor.find(params[:id])
+
+    recent = sensor.pings
+      .order(created_at: :desc)
+      .limit(params.fetch(:limit, 20).to_i)
+
+    render json: PingSerializer.new(recent).serializable_hash
+  end
+
+  def latency_summary
+    sensor = Sensor.find(params[:id])
+
+    stats = sensor.pings
+      .where("created_at >= ?", 1.hour.ago)
+      .pluck(:response_time)
+
+    if stats.empty?
+      render json: {
+        data: {
+          type: "latency_summary",
+          id: sensor.id.to_s,
+          attributes: {}
+        }
+      }
+      return
+    end
+
+    summary = {
+      avg: stats.mean.round(2),
+      median: stats.median.round(2),
+      p95: stats.percentile(95).round(2),
+      p99: stats.percentile(99).round(2),
+      stddev: stats.standard_deviation.round(2)
+    }
+
+    render json: {
+      data: {
+        type: "latency_summary",
+        id: sensor.id.to_s,
+        attributes: summary
+      }
+    }
   end
 
   private
@@ -79,5 +124,4 @@ class SensorsController < ApplicationController
       per_page: pagy.vars[:items]
     }
   end
-  
 end
