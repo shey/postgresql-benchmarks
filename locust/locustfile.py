@@ -10,8 +10,11 @@ def uniform_sensor_id():
 def skewed_sensor_id():
     return int(MAX_SENSOR_ID / (random.random() * 100 + 1))
 
+def cold_sensor_id():
+    return int(MAX_SENSOR_ID - (MAX_SENSOR_ID / (random.random() * 100 + 1)))
+
 # -------------------
-# INSERT PINGS (15%)
+# INSERT PINGS
 # -------------------
 class InsertPingUser(HttpUser):
     wait_time = between(0.05, 0.3)
@@ -28,7 +31,7 @@ class InsertPingUser(HttpUser):
         self.client.post("/pings", json=payload, name="/pings")
 
 # -------------------
-# DASHBOARD FAILURE RATE (10%)
+# DASHBOARD FAILURE RATE
 # -------------------
 class FailureRateUser(HttpUser):
     wait_time = between(0.3, 1.5)
@@ -42,12 +45,12 @@ class FailureRateUser(HttpUser):
         )
 
 # -------------------
-# INCIDENT DEBUG VIEW (20%)
+# INCIDENT DEBUG VIEW
 # -------------------
 class RecentFailuresUser(HttpUser):
     wait_time = between(0.2, 1.0)
 
-    @task(4)
+    @task(3)
     def get_recent_failures(self):
         sensor_id = uniform_sensor_id()
         self.client.get(
@@ -56,7 +59,7 @@ class RecentFailuresUser(HttpUser):
         )
 
 # -------------------
-# TIME SERIES QUERIES (25%)
+# TIME SERIES QUERIES
 # -------------------
 class TimeSeriesUser(HttpUser):
     wait_time = between(1.0, 2.5)
@@ -70,7 +73,7 @@ class TimeSeriesUser(HttpUser):
         )
 
 # -------------------
-# BURSTY READ LOAD (15%)
+# BURSTY READ LOAD
 # -------------------
 class BurstyUser(HttpUser):
     wait_time = between(0.5, 1.2)
@@ -78,8 +81,7 @@ class BurstyUser(HttpUser):
     @task(3)
     def bursty_traffic(self):
         sensor_id = skewed_sensor_id()
-
-        if random.random() < 0.05:  # 5% chance of burst
+        if random.random() < 0.05:
             for _ in range(5):
                 self.client.get(
                     f"/sensors/{sensor_id}/hourly_stats",
@@ -92,7 +94,7 @@ class BurstyUser(HttpUser):
             )
 
 # -------------------
-# SENSOR DETAIL VIEW (10%)
+# SENSOR DETAIL VIEW
 # -------------------
 class GetSensorUser(HttpUser):
     wait_time = between(0.3, 1.5)
@@ -106,7 +108,7 @@ class GetSensorUser(HttpUser):
         )
 
 # -------------------
-# ERROR / NOISE TRAFFIC (5%)
+# ERROR / NOISE TRAFFIC
 # -------------------
 class RandomNoiseUser(HttpUser):
     wait_time = between(1.0, 3.0)
@@ -120,3 +122,61 @@ class RandomNoiseUser(HttpUser):
             "/sensors//hourly_stats"
         ]
         self.client.get(random.choice(paths), name="/noise")
+
+# -------------------
+# RECENT PINGS
+# -------------------
+class RecentPingsUser(HttpUser):
+    wait_time = between(0.8, 2.0)
+
+    @task(4)
+    def get_recent_pings(self):
+        sensor_id = cold_sensor_id()
+        self.client.get(
+            f"/sensors/{sensor_id}/recent_pings",
+            name="/sensors/:id/recent_pings"
+        )
+
+# -------------------
+# LATENCY SUMMARY
+# -------------------
+class LatencySummaryUser(HttpUser):
+    wait_time = between(0.8, 2.0)
+
+    @task(2)
+    def get_latency_summary(self):
+        sensor_id = skewed_sensor_id()
+        self.client.get(
+            f"/sensors/{sensor_id}/latency_summary",
+            name="/sensors/:id/latency_summary"
+        )
+
+# -------------------
+# INCIDENT SPIKE SIMULATION
+# -------------------
+class IncidentSpikeUser(HttpUser):
+    wait_time = between(0.1, 0.5)
+
+    @task(3)
+    def spike_recent_failures(self):
+        sensor_id = skewed_sensor_id()
+        self.client.get(
+            f"/sensors/{sensor_id}/recent_failures",
+            name="/sensors/:id/recent_failures"
+        )
+
+    @task(2)
+    def spike_failure_rate(self):
+        sensor_id = skewed_sensor_id()
+        self.client.get(
+            f"/sensors/{sensor_id}/failure_rate",
+            name="/sensors/:id/failure_rate"
+        )
+
+    @task(1)
+    def spike_hourly_stats(self):
+        sensor_id = skewed_sensor_id()
+        self.client.get(
+            f"/sensors/{sensor_id}/hourly_stats",
+            name="/sensors/:id/hourly_stats"
+        )
