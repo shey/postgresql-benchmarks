@@ -19,11 +19,13 @@ class InsertPingUser(HttpUser):
     @task(3)
     def insert_ping(self):
         payload = {
-            "sensor_id": skewed_sensor_id(),
-            "response_time": round(random.uniform(0, 100), 2),
-            "status_code": 200 if random.random() < 0.9 else 500
+            "ping": {
+                "sensor_id": skewed_sensor_id(),
+                "response_time": round(random.uniform(0, 100), 2),
+                "status_code": 200 if random.random() < 0.9 else 500
+            }
         }
-        self.client.post("/pings", json=payload)
+        self.client.post("/pings", json=payload, name="/pings")
 
 # -------------------
 # DASHBOARD FAILURE RATE (10%)
@@ -34,7 +36,10 @@ class FailureRateUser(HttpUser):
     @task(2)
     def get_failure_rate(self):
         sensor_id = skewed_sensor_id()
-        self.client.get(f"/sensors/{sensor_id}/failure_rate")
+        self.client.get(
+            f"/sensors/{sensor_id}/failure_rate",
+            name="/sensors/:id/failure_rate"
+        )
 
 # -------------------
 # INCIDENT DEBUG VIEW (20%)
@@ -45,7 +50,10 @@ class RecentFailuresUser(HttpUser):
     @task(4)
     def get_recent_failures(self):
         sensor_id = uniform_sensor_id()
-        self.client.get(f"/sensors/{sensor_id}/recent_failures")
+        self.client.get(
+            f"/sensors/{sensor_id}/recent_failures",
+            name="/sensors/:id/recent_failures"
+        )
 
 # -------------------
 # TIME SERIES QUERIES (25%)
@@ -56,7 +64,10 @@ class TimeSeriesUser(HttpUser):
     @task(5)
     def hourly_stats(self):
         sensor_id = uniform_sensor_id()
-        self.client.get(f"/sensors/{sensor_id}/hourly_stats")
+        self.client.get(
+            f"/sensors/{sensor_id}/hourly_stats",
+            name="/sensors/:id/hourly_stats"
+        )
 
 # -------------------
 # BURSTY READ LOAD (15%)
@@ -70,9 +81,15 @@ class BurstyUser(HttpUser):
 
         if random.random() < 0.05:  # 5% chance of burst
             for _ in range(5):
-                self.client.get(f"/sensors/{sensor_id}/hourly_stats")
+                self.client.get(
+                    f"/sensors/{sensor_id}/hourly_stats",
+                    name="/sensors/:id/hourly_stats"
+                )
         else:
-            self.client.get(f"/sensors/{sensor_id}/failure_rate")
+            self.client.get(
+                f"/sensors/{sensor_id}/failure_rate",
+                name="/sensors/:id/failure_rate"
+            )
 
 # -------------------
 # SENSOR DETAIL VIEW (10%)
@@ -83,7 +100,10 @@ class GetSensorUser(HttpUser):
     @task(2)
     def get_sensor(self):
         sensor_id = skewed_sensor_id()
-        self.client.get(f"/sensors/{sensor_id}/")
+        self.client.get(
+            f"/sensors/{sensor_id}/",
+            name="/sensors/:id/"
+        )
 
 # -------------------
 # ERROR / NOISE TRAFFIC (5%)
@@ -99,4 +119,4 @@ class RandomNoiseUser(HttpUser):
             "/pings?sensor_id=abc",
             "/sensors//hourly_stats"
         ]
-        self.client.get(random.choice(paths))
+        self.client.get(random.choice(paths), name="/noise")

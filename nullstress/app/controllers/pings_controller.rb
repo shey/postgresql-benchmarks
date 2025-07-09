@@ -16,6 +16,7 @@ class PingsController < ApplicationController
   private
 
   def ping_params
-    params.permit(:sensor_id, :response_time, :status_code)
+    params.require(:ping).permit(:sensor_id, :response_time, :status_code)
   end
+
 end
